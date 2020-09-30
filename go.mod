@@ -20,7 +20,6 @@ require (
 	github.com/golang/protobuf v1.4.2 // indirect
 	github.com/heroku/x v0.0.25
 	github.com/ivpusic/grpool v1.0.0
-	github.com/jackc/pgproto3/v2 v2.0.4 // indirect
 	github.com/jasonlvhit/gocron v0.0.1
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
@@ -37,6 +36,6 @@ require (
 	google.golang.org/appengine v1.6.6 // indirect
 	google.golang.org/protobuf v1.25.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
-	gorm.io/driver/postgres v1.0.0
-	gorm.io/gorm v1.20.0
+	gorm.io/driver/postgres v1.0.2
+	gorm.io/gorm v1.20.2
 )
