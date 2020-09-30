@@ -1,0 +1,58 @@
+kind: pipeline
+name: default
+
+clone:
+  depth: 1
+
+steps:
+  - name: semantic-release
+    image: sqeven/semantic-release
+    settings:
+      git_user_name: sqeven
+      git_user_email: sqeven@qq.com
+      git_login: sqeven
+      git_password:
+        from_secret: sqeven_password
+    when:
+      branch: master
+      event: push
+  - name: build-www
+    image: sqeven/drone-sshop
+    settings:
+      host: docker.sqeven.me
+      username: root
+      port: 22
+      password:
+        from_secret: sqeven_key
+      command_timeout: 7m
+      script:
+        - cd /root/seven/devops/pps && git pull || git pull origin master
+        - cd /root/seven/devops/pps && make linux-amd64 && chmod +x bin/pps-linux-amd64
+        - cd /root/seven/devops/pps && kill -9 $(ps -ef | grep pps | grep -v grep | awk '{print $2}') || ls -a
+        - cd /root/seven/devops/pps && mv bin/pps-linux-amd64 bin/pps-$$(git describe --tags `git rev-list --tags --max-count=1`)
+        - cd /root/seven/devops/pps && proxy && nohup PORT=8778 ./bin/pps-$$(git describe --tags `git rev-list --tags --max-count=1`) -c config/config.yaml >/dev/null 2>&1 & || pwd
+        - cd /root/seven/devops/pps && ps -ef | grep pps | grep -v grep
+    when:
+      event: tag
+    privileged: true
+  - name: wechat
+    image: clem109/drone-wechat
+    settings:
+      corpid:
+        from_secret: plugin_corpid
+      corp_secret:
+        from_secret: plugin_corp_secret
+      agent_id:
+        from_secret: plugin_agent_id
+      title: ${DRONE_REPO_NAME}
+      description: |
+        构建序列: ${DRONE_BUILD_NUMBER}  部署成功，干得好 ${DRONE_COMMIT_AUTHOR} ！
+        更新内容: ${DRONE_COMMIT_MESSAGE}
+      msg_url: ${DRONE_BUILD_LINK}
+      btn_txt: btn
+      when:
+        status: [ success ]
+    when:
+      branch:
+        - master
+        - dev

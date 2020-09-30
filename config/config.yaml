@@ -1,0 +1,16 @@
+# your domain
+domain: proxy.sqeven.me
+
+# database url
+database_url: ""
+
+# cloudflare api
+cf_email: ""
+cf_key: ""
+
+# source definition file
+source-files:
+  # use local file
+  - source.yaml
+  # use web file
+  - https://proxy.sqeven.me/seven/source.yaml
