@@ -26,6 +26,9 @@ func connect() (err error) {
 	})
 	if err == nil {
 		fmt.Println("DB connect success: ", DB.Name())
+	} else {
+		fmt.Println("DB connect failure: ", err)
+
 	}
 	return
 }

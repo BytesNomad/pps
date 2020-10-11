@@ -12,7 +12,10 @@ import (
 	binhtml "github.com/sqeven/pps/internal/bindata/html"
 	"github.com/sqeven/pps/internal/cache"
 	"github.com/sqeven/pps/pkg/provider"
+	"github.com/unrolled/secure"
 )
+
+
 
 const version = "v1.0.0"
 
@@ -21,15 +24,11 @@ var router *gin.Engine
 func setupRouter() {
 	gin.SetMode(gin.ReleaseMode)
 	router = gin.New()
-	router.Use(gin.Recovery())
-	temp, err := loadTemplate()
-	if err != nil {
-		panic(err)
-	}
-	router.SetHTMLTemplate(temp)
+	router.LoadHTMLGlob("assets/templates/*")
+
 
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "assets/html/index.html", gin.H{
+		c.HTML(http.StatusOK, "index.html", gin.H{
 			"domain":               config.Config.Domain,
 			"getters_count":        cache.GettersCount,
 			"all_proxies_count":    cache.AllProxiesCount,
@@ -44,25 +43,25 @@ func setupRouter() {
 	})
 
 	router.GET("/clash", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "assets/html/clash.html", gin.H{
+		c.HTML(http.StatusOK, "clash.html", gin.H{
 			"domain": config.Config.Domain,
 		})
 	})
 
 	router.GET("/surge", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "assets/html/surge.html", gin.H{
+		c.HTML(http.StatusOK, "surge.html", gin.H{
 			"domain": config.Config.Domain,
 		})
 	})
 
 	router.GET("/clash/config", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "assets/html/clash-config.yaml", gin.H{
+		c.HTML(http.StatusOK, "clash-config.yaml", gin.H{
 			"domain": config.Config.Domain,
 		})
 	})
 
 	router.GET("/surge/config", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "assets/html/surge.conf", gin.H{
+		c.HTML(http.StatusOK, "surge.conf", gin.H{
 			"domain": config.Config.Domain,
 		})
 	})
@@ -208,12 +207,38 @@ func setupRouter() {
 	})
 }
 
+func TlsHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+	    port := os.Getenv("SSL_PORT")
+		if port == "" {
+			port = "8088"
+		}
+	  secureMiddleware := secure.New(secure.Options{
+		SSLRedirect: true,
+		SSLHost:	 ":"+port,
+	  })
+	  err := secureMiddleware.Process(c.Writer, c.Request)
+	  if err != nil {
+		return
+	  }
+	  c.Next()
+	}
+  }
 func Run() {
 	setupRouter()
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
+	/*
+	ssl_port := os.Getenv("SSL_PORT")
+		if ssl_port == "" {
+			ssl_port = "8088"
+		}
+	router.Use(TlsHandler())
+	go router.RunTLS(":"+ssl_port, "./mkcert/rootCA.pem", "./mkcert/rootCA-key.pem")
+	*/
+
 	router.Run(":" + port)
 }
 
